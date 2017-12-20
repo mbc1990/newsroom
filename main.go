@@ -10,6 +10,7 @@ type Configuration struct {
 	PGUser     string
 	PGPassword string
 	PGDbname   string
+	FeedURLs   []string
 }
 
 func main() {
