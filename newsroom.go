@@ -10,7 +10,6 @@ type Newsroom struct {
 }
 
 // Get the contents of an rss feed
-// TODO: Handle deduplication
 func (nr *Newsroom) GetFeed(feedInfo FeedInfo) {
 	fp := gofeed.NewParser()
 	feed, _ := fp.ParseURL(feedInfo.Url)
