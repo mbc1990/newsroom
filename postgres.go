@@ -18,9 +18,9 @@ type PostgresClient struct {
 func (p *PostgresClient) InsertFeedItem(feed_id int, title string, content string,
 	description string, link string) {
 	sqlStatement := `  
-  INSERT INTO feed_items (feed_id, title, content, categories, description, link)
-  VALUES ($1, $2, $3, $4, $5, $6)`
-	_, err := p.Db.Exec(sqlStatement, feed_id, title, content, "", description, link)
+  INSERT INTO feed_items (feed_id, title, content, description, link)
+  VALUES ($1, $2, $3, $4, $5)`
+	_, err := p.Db.Exec(sqlStatement, feed_id, title, content, description, link)
 	if err != nil {
 		panic(err)
 	}
