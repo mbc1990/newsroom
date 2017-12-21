@@ -1,7 +1,9 @@
 package main
 
+import "log"
 import "fmt"
 import "time"
+import "strconv"
 import "github.com/mmcdole/gofeed"
 
 type Newsroom struct {
@@ -12,8 +14,11 @@ type Newsroom struct {
 // Get the contents of an rss feed
 func (nr *Newsroom) GetFeed(feedInfo FeedInfo) {
 	fp := gofeed.NewParser()
-	feed, _ := fp.ParseURL(feedInfo.Url)
-	fmt.Println(feed.Title)
+	feed, err := fp.ParseURL(feedInfo.Url)
+	if err != nil {
+		fmt.Println("Bad url: " + feedInfo.Url)
+		log.Fatal(err)
+	}
 	for _, item := range feed.Items {
 		nr.PostgresClient.InsertFeedItem(feed.Title, item.Title, item.Content, item.Description, item.Link)
 	}
@@ -27,6 +32,7 @@ func (nr *Newsroom) Start() {
 	// TODO: Testing, remove this line
 	pauseDuration := time.Duration(int64(time.Second) * 10)
 	numFeeds := len(nr.Conf.Feeds)
+	fmt.Println("Collecting news from " + strconv.Itoa(numFeeds) + " sources.")
 	for {
 		// If we've gone through everything, reset index and sleep
 		if idx == numFeeds {
