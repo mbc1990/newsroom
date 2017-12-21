@@ -4,22 +4,11 @@ import "fmt"
 import "time"
 import "strconv"
 import "github.com/mmcdole/gofeed"
-import "github.com/prometheus/client_golang/prometheus"
 
 type Newsroom struct {
 	Conf           *Configuration
 	PostgresClient *PostgresClient
 }
-
-var feedItemsCounter = prometheus.NewCounter(prometheus.CounterOpts{
-	Name: "feed_items",
-	Help: "Number of items collected",
-})
-
-var badUrlsCounter = prometheus.NewCounter(prometheus.CounterOpts{
-	Name: "bad_feed_url",
-	Help: "Error when fetching feed",
-})
 
 // Get the contents of an rss feed
 func (nr *Newsroom) GetFeed(feedInfo FeedInfo) {
@@ -38,8 +27,6 @@ func (nr *Newsroom) GetFeed(feedInfo FeedInfo) {
 
 // Begin running
 func (nr *Newsroom) Start() {
-	prometheus.MustRegister(feedItemsCounter)
-	prometheus.MustRegister(badUrlsCounter)
 	idx := 0
 	pauseDuration := time.Duration(int(time.Second) * nr.Conf.FeedCollectionIntervalSeconds)
 	numFeeds := len(nr.Conf.Feeds)
