@@ -16,7 +16,7 @@ func (nr *Newsroom) GetFeed(feedInfo FeedInfo) {
 	feed, _ := fp.ParseURL(feedInfo.Url)
 	fmt.Println(feed.Title)
 	for _, item := range feed.Items {
-		nr.PostgresClient.InsertFeedItem(-1, item.Title, item.Content, item.Description, item.Link)
+		nr.PostgresClient.InsertFeedItem(feed.Title, item.Title, item.Content, item.Description, item.Link)
 	}
 }
 

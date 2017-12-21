@@ -1,6 +1,6 @@
 CREATE TABLE feed_items(
   item_id serial primary key not null,
-  feed_id integer not null,
+  feed_title varchar(1024) not null,
   title varchar(1024) not null,
   content varchar(1024) not null,
   description varchar(1024) not null,
