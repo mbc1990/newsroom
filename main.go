@@ -3,6 +3,8 @@ package main
 import "encoding/json"
 import "fmt"
 import "os"
+import "net/http"
+import "github.com/prometheus/client_golang/prometheus"
 
 // Metadata about feeds that will be scraped
 type FeedInfo struct {
@@ -10,12 +12,14 @@ type FeedInfo struct {
 }
 
 type Configuration struct {
-	PGHost     string
-	PGPort     int
-	PGUser     string
-	PGPassword string
-	PGDbname   string
-	Feeds      []FeedInfo
+	PGHost                        string
+	PGPort                        int
+	PGUser                        string
+	PGPassword                    string
+	PGDbname                      string
+	PrometheusPort                string
+	Feeds                         []FeedInfo
+	FeedCollectionIntervalSeconds int
 }
 
 func main() {
@@ -32,6 +36,12 @@ func main() {
 	if err != nil {
 		fmt.Println("error:", err)
 	}
+
+	// Instrument Prometheus
+	http.Handle("/metrics", prometheus.Handler())
+	go http.ListenAndServe(conf.PrometheusPort, nil)
+
+	// Start service
 	nr := NewNewsroom(&conf)
 	nr.Start()
 }

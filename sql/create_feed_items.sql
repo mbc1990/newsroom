@@ -5,5 +5,6 @@ CREATE TABLE feed_items(
   content text not null,
   description text not null,
   link text not null,
-  timestamp timestamp default current_timestamp
+  timestamp timestamp default current_timestamp,
+  scraped boolean not null
 );
