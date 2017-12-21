@@ -2,8 +2,8 @@ package main
 
 import "github.com/prometheus/client_golang/prometheus"
 
-var feedItemsCounter = prometheus.NewCounter(prometheus.CounterOpts{
-	Name: "feed_items",
+var feedItemsGauge = prometheus.NewGauge(prometheus.GaugeOpts{
+	Name: "num_feed_items",
 	Help: "Number of items collected",
 })
 

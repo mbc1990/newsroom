@@ -26,6 +26,24 @@ func (p *PostgresClient) InsertFeedItem(feedTitle string, title string, content 
 	}
 }
 
+func (p *PostgresClient) GetNumFeedItems() int {
+	sqlStatement := `
+    SELECT count(*) FROM feed_items`
+	rows, err := p.Db.Query(sqlStatement)
+	defer rows.Close()
+	if err != nil {
+		panic(err)
+	}
+
+	var count int
+	for rows.Next() {
+		if err := rows.Scan(&count); err != nil {
+			panic(err)
+		}
+	}
+	return count
+}
+
 func (p *PostgresClient) GetDB() *sql.DB {
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
 		"password=%s dbname=%s sslmode=disable",

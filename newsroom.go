@@ -21,7 +21,16 @@ func (nr *Newsroom) GetFeed(feedInfo FeedInfo) {
 	}
 	for _, item := range feed.Items {
 		nr.PostgresClient.InsertFeedItem(feed.Title, item.Title, item.Content, item.Description, item.Link)
-		feedItemsCounter.Inc()
+	}
+}
+
+func (nr *Newsroom) DBMetrics() {
+	for {
+
+		items := nr.PostgresClient.GetNumFeedItems()
+		feedItemsGauge.Set(float64(items))
+		pauseDuration := time.Duration(int(time.Second) * nr.Conf.FeedCollectionIntervalSeconds)
+		time.Sleep(pauseDuration)
 	}
 }
 
@@ -30,6 +39,7 @@ func (nr *Newsroom) Start() {
 	idx := 0
 	pauseDuration := time.Duration(int(time.Second) * nr.Conf.FeedCollectionIntervalSeconds)
 	numFeeds := len(nr.Conf.Feeds)
+	go nr.DBMetrics()
 	fmt.Println("Collecting news from " + strconv.Itoa(numFeeds) + " sources.")
 	for {
 		// If we've gone through everything, reset index and sleep
