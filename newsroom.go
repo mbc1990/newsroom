@@ -5,28 +5,19 @@ import "time"
 import "github.com/mmcdole/gofeed"
 
 type Newsroom struct {
-	Conf *Configuration
+	Conf           *Configuration
+	PostgresClient *PostgresClient
 }
 
 // Get the contents of an rss feed
-func (nr *Newsroom) GetFeed(feedUrl string) {
+// TODO: Handle deduplication
+func (nr *Newsroom) GetFeed(feedInfo FeedInfo) {
 	fp := gofeed.NewParser()
-	feed, _ := fp.ParseURL(feedUrl)
+	feed, _ := fp.ParseURL(feedInfo.Url)
 	fmt.Println(feed.Title)
-
-	// items := feed.Items
-	/*
-		// for each item
-		  // Extract:
-		    // Title
-		    // Content
-		    // Categories
-		    // Description
-		    // Link
-		  // Store in postgres
-		  // If scrape text
-		    // Send link to scraper
-	*/
+	for _, item := range feed.Items {
+		nr.PostgresClient.InsertFeedItem(-1, item.Title, item.Content, item.Description, item.Link)
+	}
 }
 
 // Begin running
@@ -36,14 +27,14 @@ func (nr *Newsroom) Start() {
 	// pauseDuration = time.Duration(int64(time.Second) * 60 * 30)
 	// TODO: Testing, remove this line
 	pauseDuration := time.Duration(int64(time.Second) * 10)
-	numFeeds := len(nr.Conf.FeedURLs)
+	numFeeds := len(nr.Conf.Feeds)
 	for {
 		// If we've gone through everything, reset index and sleep
 		if idx == numFeeds {
 			idx = 0
 			time.Sleep(pauseDuration)
 		}
-		go nr.GetFeed(nr.Conf.FeedURLs[idx])
+		go nr.GetFeed(nr.Conf.Feeds[idx])
 		idx++
 	}
 }
@@ -51,5 +42,7 @@ func (nr *Newsroom) Start() {
 func NewNewsroom(conf *Configuration) *Newsroom {
 	n := new(Newsroom)
 	n.Conf = conf
+	n.PostgresClient = NewPostgresClient(n.Conf.PGHost, n.Conf.PGPort,
+		n.Conf.PGUser, n.Conf.PGPassword, n.Conf.PGDbname)
 	return n
 }

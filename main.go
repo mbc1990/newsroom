@@ -4,13 +4,18 @@ import "encoding/json"
 import "fmt"
 import "os"
 
+// Metadata about feeds that will be scraped
+type FeedInfo struct {
+	Url string
+}
+
 type Configuration struct {
 	PGHost     string
 	PGPort     int
 	PGUser     string
 	PGPassword string
 	PGDbname   string
-	FeedURLs   []string
+	Feeds      []FeedInfo
 }
 
 func main() {
