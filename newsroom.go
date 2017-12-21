@@ -1,6 +1,5 @@
 package main
 
-import "log"
 import "fmt"
 import "time"
 import "strconv"
@@ -17,13 +16,19 @@ var feedItemsCounter = prometheus.NewCounter(prometheus.CounterOpts{
 	Help: "Number of items collected",
 })
 
+var badUrlsCounter = prometheus.NewCounter(prometheus.CounterOpts{
+	Name: "bad_feed_url",
+	Help: "Error when fetching feed",
+})
+
 // Get the contents of an rss feed
 func (nr *Newsroom) GetFeed(feedInfo FeedInfo) {
 	fp := gofeed.NewParser()
 	feed, err := fp.ParseURL(feedInfo.Url)
 	if err != nil {
 		fmt.Println("Bad url: " + feedInfo.Url)
-		log.Fatal(err)
+		badUrlsCounter.Inc()
+		return
 	}
 	for _, item := range feed.Items {
 		nr.PostgresClient.InsertFeedItem(feed.Title, item.Title, item.Content, item.Description, item.Link)
@@ -34,6 +39,7 @@ func (nr *Newsroom) GetFeed(feedInfo FeedInfo) {
 // Begin running
 func (nr *Newsroom) Start() {
 	prometheus.MustRegister(feedItemsCounter)
+	prometheus.MustRegister(badUrlsCounter)
 	idx := 0
 	pauseDuration := time.Duration(int(time.Second) * nr.Conf.FeedCollectionIntervalSeconds)
 	numFeeds := len(nr.Conf.Feeds)
