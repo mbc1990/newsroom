@@ -39,7 +39,6 @@ func main() {
 
 	// Instrument Prometheus
 	prometheus.MustRegister(feedItemsGauge)
-	prometheus.MustRegister(badUrlsCounter)
 	http.Handle("/metrics", prometheus.Handler())
 	go http.ListenAndServe(conf.PrometheusPort, nil)
 

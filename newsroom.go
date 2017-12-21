@@ -16,7 +16,6 @@ func (nr *Newsroom) GetFeed(feedInfo FeedInfo) {
 	feed, err := fp.ParseURL(feedInfo.Url)
 	if err != nil {
 		fmt.Println("Bad url: " + feedInfo.Url)
-		badUrlsCounter.Inc()
 		return
 	}
 	for _, item := range feed.Items {
