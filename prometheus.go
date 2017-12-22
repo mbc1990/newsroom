@@ -8,6 +8,6 @@ var feedItemsGauge = prometheus.NewGauge(prometheus.GaugeOpts{
 })
 
 var cryptoGauge = prometheus.NewGauge(prometheus.GaugeOpts{
-	Name: "num_crypto_keywords_mentions",
+	Name: "crypto_mentions",
 	Help: "Number of crypto keyword mentions in headlines in the last 6 hours",
 })
