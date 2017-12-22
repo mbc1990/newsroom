@@ -29,13 +29,6 @@ func RemovePunctuation(doc string) string {
 	return doc
 }
 
-/*
-TODO:
-func Tfidf(corpus *[]Document, document *Document) map[string]float64 {
-
-}
-*/
-
 func Contains(s *[]string, e string) bool {
 	for _, a := range *s {
 		if a == e {
