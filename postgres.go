@@ -44,6 +44,38 @@ func (p *PostgresClient) GetNumFeedItems() int {
 	return count
 }
 
+type FeedItem struct {
+	Id          int
+	Headline    string
+	Description string
+}
+
+// TODO: Should take a Timespan
+func (p *PostgresClient) GetFeedItems() *[]FeedItem {
+	sqlStatement := `
+    SELECT item_id, title, description FROM feed_items`
+	rows, err := p.Db.Query(sqlStatement)
+	defer rows.Close()
+	if err != nil {
+		panic(err)
+	}
+	var items []FeedItem
+	for rows.Next() {
+		var itemId int
+		var headline string
+		var description string
+		if err := rows.Scan(&itemId, &headline, &description); err != nil {
+			panic(err)
+		}
+		item := new(FeedItem)
+		item.Id = itemId
+		item.Headline = headline
+		item.Description = description
+		items = append(items, *item)
+	}
+	return &items
+}
+
 func (p *PostgresClient) GetDB() *sql.DB {
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
 		"password=%s dbname=%s sslmode=disable",
