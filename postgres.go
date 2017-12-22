@@ -50,11 +50,12 @@ type FeedItem struct {
 	Description string
 }
 
-// TODO: Should take a Timespan
-func (p *PostgresClient) GetFeedItems() *[]FeedItem {
+func (p *PostgresClient) GetFeedItems(timespan Timespan) *[]FeedItem {
 	sqlStatement := `
-    SELECT item_id, title, description FROM feed_items`
-	rows, err := p.Db.Query(sqlStatement)
+    SELECT item_id, title, description FROM feed_items
+    WHERE timestamp >= ($1) AND timestamp < ($2)
+      `
+	rows, err := p.Db.Query(sqlStatement, timespan.Start, timespan.End)
 	defer rows.Close()
 	if err != nil {
 		panic(err)

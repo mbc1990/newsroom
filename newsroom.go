@@ -27,7 +27,6 @@ func (nr *Newsroom) GetFeed(feedInfo FeedInfo) {
 		fmt.Println("Bad url: " + feedInfo.Url)
 		return
 	}
-	// TODO: This should insert a timestamp from the feed, not the current time
 	for _, item := range feed.Items {
 		nr.PostgresClient.InsertFeedItem(feed.Title, item.Title, item.Content, item.Description, item.Link)
 	}
@@ -36,7 +35,7 @@ func (nr *Newsroom) GetFeed(feedInfo FeedInfo) {
 // Called before a transformation, creates documents for each entry in the requested timespan
 func (nr *Newsroom) GetDocuments(timespan Timespan) *[]Document {
 	ret := make([]Document, 0)
-	items := nr.PostgresClient.GetFeedItems()
+	items := nr.PostgresClient.GetFeedItems(timespan)
 	for _, item := range *items {
 		doc := new(Document)
 		doc.Id = item.Id
@@ -49,13 +48,12 @@ func (nr *Newsroom) GetDocuments(timespan Timespan) *[]Document {
 
 // Entry point for a run of transformers
 func (nr *Newsroom) RunTransformations() {
-	// TODO: Transformations run on *all* documents right now.
-	// TODO: For this to change, the timestamp needs to come from the RSS feed
-	ts := Timespan{0, 0}
+	tih := new(TrendingInHeadlines)
+	ts := tih.GetTimespan()
 	docs := nr.GetDocuments(ts)
+	fmt.Println(strconv.Itoa(len(*docs)) + " documents being processed")
 
 	// TODO: This operation should be generalized over N things that implement the Transformation interface
-	tih := new(TrendingInHeadlines)
 	tih.Transform(docs)
 }
 

@@ -2,11 +2,12 @@ package main
 
 import "fmt"
 import "sort"
+import "time"
 import "strconv"
 
 type Timespan struct {
-	Start int
-	End   int
+	Start time.Time
+	End   time.Time
 }
 
 type Transformation interface {
@@ -45,13 +46,21 @@ func (tih *TrendingInHeadlines) Transform(docs *[]Document) {
 		return counts[keys[i]] > counts[keys[j]]
 	})
 
-	for j := 0; j < 10; j++ {
+	// Handle fewer than 10 terms being available
+	end := 10
+	if len(keys) < end {
+		end = len(keys)
+	}
+
+	for j := 0; j < end; j++ {
 		fmt.Println(keys[j] + " " + strconv.Itoa(counts[keys[j]]))
 	}
 }
 
 func (tih *TrendingInHeadlines) GetTimespan() Timespan {
-	// TODO: Dummy values until timespan data problem is fixed
-	ts := Timespan{0, 0}
+	// Last hour
+	now := time.Now()
+	then := now.Add(-1 * time.Hour)
+	ts := Timespan{then, now}
 	return ts
 }
