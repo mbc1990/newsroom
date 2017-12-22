@@ -1,6 +1,7 @@
 package main
 
 import "strings"
+import "strconv"
 
 /*
 General NLP utils that don't depend on any application state
@@ -36,6 +37,12 @@ func Contains(s *[]string, e string) bool {
 		}
 	}
 	return false
+}
+
+// TODO: Move this elsewhere?
+func FloatToStr(input_num float64) string {
+	// to convert a float number to a string
+	return strconv.FormatFloat(input_num, 'g', 4, 64)
 }
 
 var punctuation = []string{
