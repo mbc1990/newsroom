@@ -11,3 +11,8 @@ var cryptoGauge = prometheus.NewGauge(prometheus.GaugeOpts{
 	Name: "crypto_mentions",
 	Help: "Number of crypto keyword mentions in headlines in the last 6 hours",
 })
+
+var bitcoinPriceGauge = prometheus.NewGauge(prometheus.GaugeOpts{
+	Name: "bitcoin_price",
+	Help: "Price of bitcoin in USD on coinbase",
+})

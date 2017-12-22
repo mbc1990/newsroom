@@ -40,6 +40,7 @@ func main() {
 	// Instrument Prometheus
 	prometheus.MustRegister(feedItemsGauge)
 	prometheus.MustRegister(cryptoGauge)
+	prometheus.MustRegister(bitcoinPriceGauge)
 	http.Handle("/metrics", prometheus.Handler())
 	go http.ListenAndServe(conf.PrometheusPort, nil)
 

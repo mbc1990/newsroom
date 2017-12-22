@@ -3,6 +3,9 @@ package main
 import "fmt"
 import "time"
 import "strings"
+import "io/ioutil"
+import "encoding/json"
+import "net/http"
 import "strconv"
 import "github.com/mmcdole/gofeed"
 
@@ -70,11 +73,39 @@ func (nr *Newsroom) DBMetrics() {
 	}
 }
 
+type CoinbaseResponse struct {
+	Bpi struct {
+		USD struct {
+			Rate string
+		}
+	}
+}
+
+// TODO: This should probably move to a separate service
+func (nr *Newsroom) BitcoinPrice() {
+	for {
+		resp, err := http.Get("https://api.coindesk.com/v1/bpi/currentprice.json")
+		if err != nil {
+			panic(err)
+		}
+		body, _ := ioutil.ReadAll(resp.Body)
+		resp.Body.Close()
+		cbResp := new(CoinbaseResponse)
+		json.Unmarshal(body, &cbResp)
+		noCommas := strings.Replace(cbResp.Bpi.USD.Rate, ",", "", -1)
+		price, _ := strconv.ParseFloat(noCommas, 64)
+		bitcoinPriceGauge.Set(price)
+		pauseDuration := time.Duration(int(time.Second) * nr.Conf.FeedCollectionIntervalSeconds)
+		time.Sleep(pauseDuration)
+	}
+}
+
 // Begin running
 func (nr *Newsroom) Start() {
 	idx := 0
 	pauseDuration := time.Duration(int(time.Second) * nr.Conf.FeedCollectionIntervalSeconds)
 	numFeeds := len(nr.Conf.Feeds)
+	go nr.BitcoinPrice()
 	go nr.DBMetrics()
 	fmt.Println("Collecting news from " + strconv.Itoa(numFeeds) + " sources.")
 	for {
