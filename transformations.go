@@ -44,11 +44,10 @@ func (tih *TrendingInHeadlines) Transform(docs *[]Document) {
 	sort.Slice(keys, func(i, j int) bool {
 		return counts[keys[i]] > counts[keys[j]]
 	})
-	fmt.Println(keys[0] + " " + strconv.Itoa(counts[keys[0]]))
-	fmt.Println(keys[1] + " " + strconv.Itoa(counts[keys[1]]))
-	fmt.Println(keys[2] + " " + strconv.Itoa(counts[keys[2]]))
-	fmt.Println(keys[3] + " " + strconv.Itoa(counts[keys[3]]))
-	fmt.Println(keys[4] + " " + strconv.Itoa(counts[keys[5]]))
+
+	for j := 0; j < 10; j++ {
+		fmt.Println(keys[j] + " " + strconv.Itoa(counts[keys[j]]))
+	}
 }
 
 func (tih *TrendingInHeadlines) GetTimespan() Timespan {
