@@ -62,6 +62,8 @@ var punctuation = []string{
 
 // Onix list of stopwords (http://www.staff.city.ac.uk/~andym/OKAPI-PACK/appendix-d.html)
 var stopwords = []string{
+	"",
+	" ", // A token that's just an empty space is invalid
 	"a",
 	"about",
 	"above",
