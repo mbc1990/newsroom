@@ -7,8 +7,9 @@ import "strconv"
 import "github.com/mmcdole/gofeed"
 
 type Newsroom struct {
-	Conf           *Configuration
-	PostgresClient *PostgresClient
+	Conf            *Configuration
+	PostgresClient  *PostgresClient
+	Transformations *[]Transformation
 }
 
 // Represents an individual document
@@ -46,15 +47,15 @@ func (nr *Newsroom) GetDocuments(timespan Timespan) *[]Document {
 	return &ret
 }
 
-// Entry point for a run of transformers
+// Entry point for a run of transformations
 func (nr *Newsroom) RunTransformations() {
-	tih := new(TrendingInHeadlines)
-	ts := tih.GetTimespan()
-	docs := nr.GetDocuments(ts)
-	fmt.Println(strconv.Itoa(len(*docs)) + " documents being processed")
-
-	// TODO: This operation should be generalized over N things that implement the Transformation interface
-	tih.Transform(docs)
+	for _, t := range *nr.Transformations {
+		ts := t.GetTimespan()
+		docs := nr.GetDocuments(ts)
+		name := t.GetName()
+		fmt.Println(strconv.Itoa(len(*docs)) + " documents being processed for transformation " + name)
+		t.Transform(docs)
+	}
 }
 
 // Periodically log database metrics for prometheus
@@ -93,5 +94,11 @@ func NewNewsroom(conf *Configuration) *Newsroom {
 	n.Conf = conf
 	n.PostgresClient = NewPostgresClient(n.Conf.PGHost, n.Conf.PGPort,
 		n.Conf.PGUser, n.Conf.PGPassword, n.Conf.PGDbname)
+	transformations := make([]Transformation, 0)
+	// Trending in headlines
+	tih := new(TrendingInHeadlines)
+	transformations = append(transformations, tih)
+	// (Initialize other transformations here)
+	n.Transformations = &transformations
 	return n
 }

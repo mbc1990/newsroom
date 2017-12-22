@@ -18,6 +18,9 @@ type Transformation interface {
 
 	// Should return a timespan representing the range across with the transformation will be applied
 	GetTimespan() Timespan
+
+	// Transformation's human readable name for logging
+	GetName() string
 }
 
 // Most popular words in headlines
@@ -55,6 +58,10 @@ func (tih *TrendingInHeadlines) Transform(docs *[]Document) {
 	for j := 0; j < end; j++ {
 		fmt.Println(keys[j] + " " + strconv.Itoa(counts[keys[j]]))
 	}
+}
+
+func (tih *TrendingInHeadlines) GetName() string {
+	return "Trending in headlines"
 }
 
 func (tih *TrendingInHeadlines) GetTimespan() Timespan {
