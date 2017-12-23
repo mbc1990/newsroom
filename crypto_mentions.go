@@ -6,7 +6,7 @@ import "time"
 // Headlines mentioning cryptocurrency
 type CryptoMentions struct{}
 
-func (cm *CryptoMentions) Transform(docs *[]Document) {
+func (cm *CryptoMentions) Transform(docs *[]Article) {
 	cryptoTerms := []string{
 		"bitcoin",
 		"btc",

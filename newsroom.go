@@ -19,10 +19,9 @@ type Newsroom struct {
 	ScraperJobQueue chan ScraperJob
 }
 
-// Represents an individual document
-// TODO: This should be more specific - all Documents are Articles
-type Document struct {
-	Id         int             // UUID for document
+// Represents an individual Article
+type Article struct {
+	Id         int             // UUID for article
 	RawText    string          // Unmanipulated text
 	Tokens     *[]string       // Tokenized, in order text
 	BagOfWords *map[string]int // Tokenized, stopwords removed, word/count vector
@@ -88,14 +87,13 @@ func (nr *Newsroom) ScraperWorker() {
 }
 
 // Called before a transformation, creates documents for each entry in the requested timespan
-func (nr *Newsroom) GetDocuments(timespan Timespan) *[]Document {
-	ret := make([]Document, 0)
+func (nr *Newsroom) GetArticles(timespan Timespan) *[]Article {
+	ret := make([]Article, 0)
 	items := nr.PostgresClient.GetFeedItems(timespan)
 	for _, item := range *items {
-		doc := new(Document)
+		doc := new(Article)
 		doc.Id = item.Id
 		// TODO: This should be a separate field on a document
-		// TODO: Document should be Article
 		doc.RawText = item.Headline
 		doc.Tokens = RemoveStopWords(Tokenize(RemovePunctuation(strings.ToLower(item.Headline))))
 		ret = append(ret, *doc)
@@ -108,7 +106,7 @@ func (nr *Newsroom) GetDocuments(timespan Timespan) *[]Document {
 func (nr *Newsroom) RunPeriodicTransformations() {
 	for _, t := range *nr.Transformations {
 		ts := t.GetTimespan()
-		docs := nr.GetDocuments(ts)
+		docs := nr.GetArticles(ts)
 		name := t.GetName()
 		fmt.Println(strconv.Itoa(len(*docs)) + " documents being processed for transformation: " + name)
 		t.Transform(docs)

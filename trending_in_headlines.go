@@ -8,7 +8,7 @@ import "time"
 // Most popular words in headlines
 type TrendingInHeadlines struct{}
 
-func (tih *TrendingInHeadlines) Transform(docs *[]Document) {
+func (tih *TrendingInHeadlines) Transform(docs *[]Article) {
 	counts := make(map[string]int)
 	for _, doc := range *docs {
 		for _, tok := range *doc.Tokens {
