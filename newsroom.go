@@ -20,6 +20,7 @@ type Newsroom struct {
 }
 
 // Represents an individual document
+// TODO: This should be more specific - all Documents are Articles
 type Document struct {
 	Id         int             // UUID for document
 	RawText    string          // Unmanipulated text
@@ -59,7 +60,7 @@ func (nr *Newsroom) ScraperWorker() {
 		scrapeQueueGauge.Dec()
 		doc, err := goquery.NewDocument(job.Url)
 		if err != nil {
-			// This happens when a URL is bad or ap age is for some reason unparsable
+			// This happens when a URL is bad or a page is for some reason unparsable
 			// So let's log it move on
 			log.Print(err)
 			scrapeFailureCounter.Inc()
@@ -93,6 +94,8 @@ func (nr *Newsroom) GetDocuments(timespan Timespan) *[]Document {
 	for _, item := range *items {
 		doc := new(Document)
 		doc.Id = item.Id
+		// TODO: This should be a separate field on a document
+		// TODO: Document should be Article
 		doc.RawText = item.Headline
 		doc.Tokens = RemoveStopWords(Tokenize(RemovePunctuation(strings.ToLower(item.Headline))))
 		ret = append(ret, *doc)
