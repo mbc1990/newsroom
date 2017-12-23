@@ -187,8 +187,8 @@ func NewNewsroom(conf *Configuration) *Newsroom {
 		n.Conf.PGUser, n.Conf.PGPassword, n.Conf.PGDbname)
 	transformations := make([]Transformation, 0)
 
-	// Trending in headlines
-	tih := new(TrendingInHeadlines)
+	// Trending in articles
+	tih := new(TrendingInArticles)
 	transformations = append(transformations, tih)
 
 	// Crypto watcher

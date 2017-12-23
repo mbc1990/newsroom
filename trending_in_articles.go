@@ -6,9 +6,9 @@ import "strconv"
 import "time"
 
 // Most popular words in headlines
-type TrendingInHeadlines struct{}
+type TrendingInArticles struct{}
 
-func (tih *TrendingInHeadlines) Transform(docs *[]Article) {
+func (tih *TrendingInArticles) Transform(docs *[]Article) {
 	counts := make(map[string]int)
 	for _, doc := range *docs {
 		for _, tok := range *doc.Tokens {
@@ -41,11 +41,11 @@ func (tih *TrendingInHeadlines) Transform(docs *[]Article) {
 	}
 }
 
-func (tih *TrendingInHeadlines) GetName() string {
+func (tih *TrendingInArticles) GetName() string {
 	return "Trending in headlines"
 }
 
-func (tih *TrendingInHeadlines) GetTimespan() Timespan {
+func (tih *TrendingInArticles) GetTimespan() Timespan {
 	// Last hour
 	now := time.Now()
 	then := now.Add(-1 * time.Hour)
