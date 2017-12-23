@@ -17,7 +17,7 @@ type Article struct {
 
 // Initialize article for manipulation
 func (a *Article) Initialize(item FeedItem, savedTextDir string) {
-	a.TokenizerVersion = 1
+	a.TokenizerVersion = 2
 	a.Id = item.Id
 	a.Headline = item.Headline
 	a.PopulateBody(savedTextDir)

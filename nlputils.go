@@ -2,6 +2,7 @@ package main
 
 import "strings"
 import "strconv"
+import "github.com/jdkato/prose/tokenize"
 
 /*
 General NLP utils that don't depend on any application state
@@ -10,8 +11,9 @@ General NLP utils that don't depend on any application state
 func Tokenize(doc string) *[]string {
 	doc = strings.ToLower(doc)
 	doc = RemovePunctuation(doc)
-	spl := strings.Split(doc, " ")
-	splPtr := RemoveStopWords(&spl)
+	tokenizer := tokenize.NewTreebankWordTokenizer()
+	toks := tokenizer.Tokenize(doc)
+	splPtr := RemoveStopWords(&toks)
 	return splPtr
 }
 
