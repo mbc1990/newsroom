@@ -79,12 +79,6 @@ func (nr *Newsroom) GetArticles(timespan Timespan) *[]Article {
 	for _, item := range *items {
 		art := new(Article)
 		art.Initialize(item, nr.Conf.ScrapedTextDir)
-		/*
-			art.Id = item.Id
-			// TODO: This should be a separate field on a document
-			art.Body = item.Headline
-			art.Tokens = RemoveStopWords(Tokenize(RemovePunctuation(strings.ToLower(item.Headline))))
-		*/
 		ret = append(ret, *art)
 	}
 	return &ret
