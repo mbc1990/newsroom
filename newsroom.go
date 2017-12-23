@@ -50,6 +50,7 @@ func (nr *Newsroom) GetFeed(feedInfo FeedInfo) {
 		job.ItemId = id
 		job.Url = item.Link
 		nr.ScraperJobQueue <- *job
+		scrapeQueueGauge.Inc()
 	}
 }
 
@@ -58,7 +59,11 @@ func (nr *Newsroom) ScraperWorker() {
 		fmt.Println(job)
 		doc, err := goquery.NewDocument(job.Url)
 		if err != nil {
-			log.Fatal(err)
+			// This happens when a URL is bad or ap age is for some reason unparsable
+			// So let's log it move on
+			log.Print(err)
+			scrapeFailureCounter.Inc()
+			continue
 		}
 		texts := make([]string, 0)
 		doc.Find("p").Each(func(index int, item *goquery.Selection) {
@@ -70,7 +75,6 @@ func (nr *Newsroom) ScraperWorker() {
 		fullText := strings.Join(texts[:], " ")
 
 		// Write the text to file
-		// TODO: This stuff could be done async
 		file, err := os.Create(nr.Conf.ScrapedTextDir + strconv.Itoa(job.ItemId) + ".txt")
 		defer file.Close()
 		if err != nil {
@@ -79,6 +83,7 @@ func (nr *Newsroom) ScraperWorker() {
 		}
 		file.WriteString(fullText)
 		nr.PostgresClient.SetScraped(job.ItemId)
+		scrapeQueueGauge.Dec()
 	}
 }
 
@@ -111,9 +116,12 @@ func (nr *Newsroom) RunPeriodicTransformations() {
 // Periodically log database metrics for prometheus
 func (nr *Newsroom) DBMetrics() {
 	for {
-
 		items := nr.PostgresClient.GetNumFeedItems()
 		feedItemsGauge.Set(float64(items))
+
+		scraped := nr.PostgresClient.GetScrapedItems()
+		scrapedItemsGauge.Set(float64(scraped))
+
 		pauseDuration := time.Duration(int(time.Second) * nr.Conf.FeedCollectionIntervalSeconds)
 		time.Sleep(pauseDuration)
 	}
@@ -146,8 +154,24 @@ func (nr *Newsroom) BitcoinPrice() {
 	}
 }
 
+func (nr *Newsroom) PopulateScrapeQueue() {
+	unscrapedItems := nr.PostgresClient.GetUnscrapedJobs()
+	for _, item := range unscrapedItems {
+		nr.ScraperJobQueue <- item
+		scrapeQueueGauge.Inc()
+	}
+}
+
 // Begin running
 func (nr *Newsroom) Start() {
+	// Populate scraper worker pool
+	for i := 0; i < nr.Conf.NumScraperWorkers; i++ {
+		go nr.ScraperWorker()
+	}
+
+	// In case we restarted and lost the queue, repopulate it from the database
+	nr.PopulateScrapeQueue()
+
 	idx := 0
 	pauseDuration := time.Duration(int(time.Second) * nr.Conf.FeedCollectionIntervalSeconds)
 	numFeeds := len(nr.Conf.Feeds)
@@ -187,10 +211,5 @@ func NewNewsroom(conf *Configuration) *Newsroom {
 
 	// Queue for scraping articles
 	n.ScraperJobQueue = make(chan ScraperJob)
-
-	// Populate scraper worker pool
-	for i := 0; i < n.Conf.NumScraperWorkers; i++ {
-		go n.ScraperWorker()
-	}
 	return n
 }

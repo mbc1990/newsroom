@@ -73,6 +73,48 @@ func (p *PostgresClient) GetNumFeedItems() int {
 	return count
 }
 
+func (p *PostgresClient) GetUnscrapedJobs() []ScraperJob {
+	sqlStatement := `
+    SELECT item_id, link FROM feed_items WHERE scraped=False`
+	rows, err := p.Db.Query(sqlStatement)
+	defer rows.Close()
+	if err != nil {
+		panic(err)
+	}
+
+	ret := make([]ScraperJob, 0)
+	for rows.Next() {
+		var id int
+		var link string
+		if err := rows.Scan(&id, &link); err != nil {
+			panic(err)
+		}
+		job := new(ScraperJob)
+		job.ItemId = id
+		job.Url = link
+		ret = append(ret, *job)
+	}
+	return ret
+}
+
+func (p *PostgresClient) GetScrapedItems() int {
+	sqlStatement := `
+    SELECT count(*) FROM feed_items WHERE scraped=True`
+	rows, err := p.Db.Query(sqlStatement)
+	defer rows.Close()
+	if err != nil {
+		panic(err)
+	}
+
+	var count int
+	for rows.Next() {
+		if err := rows.Scan(&count); err != nil {
+			panic(err)
+		}
+	}
+	return count
+}
+
 type FeedItem struct {
 	Id          int
 	Headline    string
