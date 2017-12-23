@@ -8,8 +8,11 @@ General NLP utils that don't depend on any application state
 */
 
 func Tokenize(doc string) *[]string {
+	doc = strings.ToLower(doc)
+	doc = RemovePunctuation(doc)
 	spl := strings.Split(doc, " ")
-	return &spl
+	splPtr := RemoveStopWords(&spl)
+	return splPtr
 }
 
 func RemoveStopWords(tokens *[]string) *[]string {

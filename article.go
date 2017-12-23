@@ -3,7 +3,6 @@ package main
 import "os"
 import "io/ioutil"
 import "encoding/json"
-import "strings"
 import "strconv"
 
 // Represents an individual Article
@@ -66,7 +65,7 @@ func (a *Article) PopulateTokens(savedTextDir string) {
 	if a.HasBody() {
 		toTokenize = toTokenize + " " + a.Body
 	}
-	a.Tokens = RemoveStopWords(Tokenize(RemovePunctuation(strings.ToLower(toTokenize))))
+	a.Tokens = Tokenize(toTokenize)
 	bytes, err := json.Marshal(a.Tokens)
 	if err != nil {
 		panic(err)
