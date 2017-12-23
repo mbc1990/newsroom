@@ -7,7 +7,10 @@ import "io/ioutil"
 import "encoding/json"
 import "net/http"
 import "strconv"
+import "os"
+import "log"
 import "github.com/mmcdole/gofeed"
+import "github.com/PuerkitoBio/goquery"
 
 type Newsroom struct {
 	Conf            *Configuration
@@ -53,10 +56,29 @@ func (nr *Newsroom) GetFeed(feedInfo FeedInfo) {
 func (nr *Newsroom) ScraperWorker() {
 	for job := range nr.ScraperJobQueue {
 		fmt.Println(job)
-		// TODO: Fetch the webpage
-		// TODO: Parse the webpage
-		// TODO: Save the text to disk
-		// TODO: Update "scraped" value in db
+		doc, err := goquery.NewDocument(job.Url)
+		if err != nil {
+			log.Fatal(err)
+		}
+		texts := make([]string, 0)
+		doc.Find("p").Each(func(index int, item *goquery.Selection) {
+			text := item.Text()
+			texts = append(texts, text)
+		})
+
+		// Join the scraped text with a space
+		fullText := strings.Join(texts[:], " ")
+
+		// Write the text to file
+		// TODO: This stuff could be done async
+		file, err := os.Create(nr.Conf.ScrapedTextDir + strconv.Itoa(job.ItemId) + ".txt")
+		defer file.Close()
+		if err != nil {
+			// This is bad, we should never be re-scraping
+			panic(err)
+		}
+		file.WriteString(fullText)
+		nr.PostgresClient.SetScraped(job.ItemId)
 	}
 }
 

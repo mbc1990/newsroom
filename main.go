@@ -21,6 +21,7 @@ type Configuration struct {
 	Feeds                         []FeedInfo
 	FeedCollectionIntervalSeconds int
 	NumScraperWorkers             int
+	ScrapedTextDir                string
 }
 
 func main() {

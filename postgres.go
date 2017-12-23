@@ -26,6 +26,15 @@ func (p *PostgresClient) InsertFeedItem(feedTitle string, title string, content 
 	}
 }
 
+func (p *PostgresClient) SetScraped(itemId int) {
+	sqlStatement := `  
+  UPDATE feed_items SET scraped=True WHERE item_id=$1`
+	_, err := p.Db.Exec(sqlStatement, itemId)
+	if err != nil {
+		panic(err)
+	}
+}
+
 func (p *PostgresClient) GetIdForItem(itemTitle string) int {
 
 	sqlStatement := `
