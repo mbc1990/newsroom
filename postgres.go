@@ -26,6 +26,26 @@ func (p *PostgresClient) InsertFeedItem(feedTitle string, title string, content 
 	}
 }
 
+func (p *PostgresClient) GetIdForItem(itemTitle string) int {
+
+	sqlStatement := `
+    SELECT item_id FROM feed_items
+    WHERE title=$1 
+      `
+	rows, err := p.Db.Query(sqlStatement, itemTitle)
+	defer rows.Close()
+	if err != nil {
+		panic(err)
+	}
+	var itemId int
+	for rows.Next() {
+		if err := rows.Scan(&itemId); err != nil {
+			panic(err)
+		}
+	}
+	return itemId
+}
+
 func (p *PostgresClient) GetNumFeedItems() int {
 	sqlStatement := `
     SELECT count(*) FROM feed_items`

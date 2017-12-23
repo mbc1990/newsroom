@@ -13,6 +13,7 @@ type Newsroom struct {
 	Conf            *Configuration
 	PostgresClient  *PostgresClient
 	Transformations *[]Transformation
+	ScraperJobQueue chan ScraperJob
 }
 
 // Represents an individual document
@@ -21,6 +22,12 @@ type Document struct {
 	RawText    string          // Unmanipulated text
 	Tokens     *[]string       // Tokenized, in order text
 	BagOfWords *map[string]int // Tokenized, stopwords removed, word/count vector
+}
+
+// Used to enqueue an article to be scraped
+type ScraperJob struct {
+	ItemId int
+	Url    string
 }
 
 // Get the contents of an rss feed
@@ -33,6 +40,23 @@ func (nr *Newsroom) GetFeed(feedInfo FeedInfo) {
 	}
 	for _, item := range feed.Items {
 		nr.PostgresClient.InsertFeedItem(feed.Title, item.Title, item.Content, item.Description, item.Link)
+		id := nr.PostgresClient.GetIdForItem(item.Title)
+
+		// Enqueue a scraper job
+		job := new(ScraperJob)
+		job.ItemId = id
+		job.Url = item.Link
+		nr.ScraperJobQueue <- *job
+	}
+}
+
+func (nr *Newsroom) ScraperWorker() {
+	for job := range nr.ScraperJobQueue {
+		fmt.Println(job)
+		// TODO: Fetch the webpage
+		// TODO: Parse the webpage
+		// TODO: Save the text to disk
+		// TODO: Update "scraped" value in db
 	}
 }
 
@@ -138,5 +162,13 @@ func NewNewsroom(conf *Configuration) *Newsroom {
 
 	// (Initialize other transformations here)
 	n.Transformations = &transformations
+
+	// Queue for scraping articles
+	n.ScraperJobQueue = make(chan ScraperJob)
+
+	// Populate scraper worker pool
+	for i := 0; i < n.Conf.NumScraperWorkers; i++ {
+		go n.ScraperWorker()
+	}
 	return n
 }

@@ -20,6 +20,7 @@ type Configuration struct {
 	PrometheusPort                string
 	Feeds                         []FeedInfo
 	FeedCollectionIntervalSeconds int
+	NumScraperWorkers             int
 }
 
 func main() {
