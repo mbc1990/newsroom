@@ -81,6 +81,20 @@ func (a *Article) PopulateTokens(savedTextDir string) {
 
 // Populates BagOfWords
 func (a *Article) PopulateBoW(savedTextDir string) {
+	// If the BoW is saved, pull it from disk
+	path := savedTextDir + strconv.Itoa(a.Id) + ".bow." + strconv.Itoa(a.TokenizerVersion) + ".json"
+	if _, err := os.Stat(path); err == nil {
+		bytes, err := ioutil.ReadFile(path)
+		if err != nil {
+			panic(err)
+		}
+		bow := make(map[string]int)
+		json.Unmarshal(bytes, &bow)
+		a.BagOfWords = bow
+		return
+	}
+
+	// Otherwise, create it and save it
 	a.BagOfWords = make(map[string]int)
 	for _, token := range *a.Tokens {
 		_, ok := a.BagOfWords[token]
@@ -89,4 +103,15 @@ func (a *Article) PopulateBoW(savedTextDir string) {
 		}
 		a.BagOfWords[token] += 1
 	}
+
+	bytes, err := json.Marshal(a.BagOfWords)
+	if err != nil {
+		panic(err)
+	}
+	file, err := os.Create(path)
+	defer file.Close()
+	if err != nil {
+		panic(err)
+	}
+	file.WriteString(string(bytes))
 }
