@@ -56,7 +56,7 @@ func (nr *Newsroom) GetFeed(feedInfo FeedInfo) {
 
 func (nr *Newsroom) ScraperWorker() {
 	for job := range nr.ScraperJobQueue {
-		fmt.Println(job)
+		scrapeQueueGauge.Dec()
 		doc, err := goquery.NewDocument(job.Url)
 		if err != nil {
 			// This happens when a URL is bad or ap age is for some reason unparsable
@@ -83,7 +83,6 @@ func (nr *Newsroom) ScraperWorker() {
 		}
 		file.WriteString(fullText)
 		nr.PostgresClient.SetScraped(job.ItemId)
-		scrapeQueueGauge.Dec()
 	}
 }
 
