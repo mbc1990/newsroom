@@ -19,20 +19,6 @@ type Newsroom struct {
 	ScraperJobQueue chan ScraperJob
 }
 
-// Represents an individual Article
-type Article struct {
-	Id         int             // UUID for article
-	RawText    string          // Unmanipulated text
-	Tokens     *[]string       // Tokenized, in order text
-	BagOfWords *map[string]int // Tokenized, stopwords removed, word/count vector
-}
-
-// Used to enqueue an article to be scraped
-type ScraperJob struct {
-	ItemId int
-	Url    string
-}
-
 // Get the contents of an rss feed
 func (nr *Newsroom) GetFeed(feedInfo FeedInfo) {
 	fp := gofeed.NewParser()
@@ -91,12 +77,15 @@ func (nr *Newsroom) GetArticles(timespan Timespan) *[]Article {
 	ret := make([]Article, 0)
 	items := nr.PostgresClient.GetFeedItems(timespan)
 	for _, item := range *items {
-		doc := new(Article)
-		doc.Id = item.Id
-		// TODO: This should be a separate field on a document
-		doc.RawText = item.Headline
-		doc.Tokens = RemoveStopWords(Tokenize(RemovePunctuation(strings.ToLower(item.Headline))))
-		ret = append(ret, *doc)
+		art := new(Article)
+		art.Initialize(item, nr.Conf.ScrapedTextDir)
+		/*
+			art.Id = item.Id
+			// TODO: This should be a separate field on a document
+			art.Body = item.Headline
+			art.Tokens = RemoveStopWords(Tokenize(RemovePunctuation(strings.ToLower(item.Headline))))
+		*/
+		ret = append(ret, *art)
 	}
 	return &ret
 }
@@ -152,6 +141,12 @@ func (nr *Newsroom) BitcoinPrice() {
 		pauseDuration := time.Duration(int(time.Second) * nr.Conf.FeedCollectionIntervalSeconds)
 		time.Sleep(pauseDuration)
 	}
+}
+
+// Used to enqueue an article to be scraped
+type ScraperJob struct {
+	ItemId int
+	Url    string
 }
 
 func (nr *Newsroom) PopulateScrapeQueue() {
